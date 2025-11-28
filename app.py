@@ -83,7 +83,7 @@ st.markdown(
 
   .fullwidth-header img {{
 
-      height: 110px;  /*  Taille bien équilibrée */
+      height: 110px;
 
   }}
 
@@ -95,7 +95,7 @@ st.markdown(
 
       text-align: center;
 
-      font-size: 40px;  /*  Taille de titre équilibrée */
+      font-size: 40px;
 
       font-weight: 700;
 
@@ -206,7 +206,6 @@ st.markdown(
 <p class="subtext">
 
     Analyse de cohérence et de complétude des données issues de Monday
-    
 </p>
 
 """,
@@ -281,7 +280,6 @@ CANON_MAP = {
 
 }
 
-
 # -------------------- HELPERS --------------------
 
 def normalise_col(c: str) -> str:
@@ -294,15 +292,11 @@ def normalise_col(c: str) -> str:
 
         return CANON_MAP[key]
 
-    # Si le nom correspond exactement à une cible, le garder
-
     for cible in COLONNES_CIBLES:
 
         if unidecode(cible).lower().strip() == key:
 
             return cible
-
-    # sinon renvoyer le nom original
 
     return c
 
@@ -312,8 +306,6 @@ def read_any_table(uploaded_file: BytesIO) -> pd.DataFrame:
     name = uploaded_file.name.lower()
 
     if name.endswith(".ods"):
-
-        # moteur LibreOffice
 
         return pd.read_excel(uploaded_file, engine="odf")
 
@@ -329,8 +321,6 @@ def completeness_table(df: pd.DataFrame, colonne: str, by_pole: bool = True) -> 
     if colonne not in df.columns:
 
         return pd.DataFrame(columns=["Colonne", "Pôle", "Remplies", "Vides", "Taux (%)"])
-
-    # Nettoyage local : suppression des NaN, espaces, tabulations, retours ligne, "nan"/"None"
 
     s = (
 
@@ -436,8 +426,6 @@ def unique_values_table(df: pd.DataFrame, colonne: str) -> pd.DataFrame:
 
     series = df[colonne].fillna("").astype(str)
 
-    # Détecte si cette colonne doit être éclatée
-
     vals = []
 
     if is_multivalue_column(series):
@@ -465,23 +453,21 @@ def unique_values_table(df: pd.DataFrame, colonne: str) -> pd.DataFrame:
 
 def normalize_value_for_compare(v: str) -> str:
 
-    """Normalise un texte pour repérer les incohérences d'écriture (même apparence mais encodage différent)."""
-
-    # Convertir en chaîne, retirer caractères invisibles
+    """Normalise un texte pour repérer les incohérences d'écriture."""
 
     v = str(v)
 
-    v = v.replace("\xa0", " ")  # supprime les espaces insécables
+    v = v.replace("\xa0", " ")
 
-    v = v.replace("\u200b", "")  # supprime les caractères zéro-width (invisibles)
+    v = v.replace("\u200b", "")
 
-    v = re.sub(r"[\r\n\t]", " ", v)  # supprime retours ligne et tabulations
+    v = re.sub(r"[\r\n\t]", " ", v)
 
-    v = unidecode(v).lower().strip()  # minuscule, sans accents, sans espaces bords
+    v = unidecode(v).lower().strip()
 
-    v = re.sub(r"[\s\-_]+", " ", v)  # espaces multiples ou tirets → espace unique
+    v = re.sub(r"[\s\-_]+", " ", v)
 
-    v = re.sub(r"[^\w\s&/]", "", v)  # supprime tout sauf lettres, chiffres, & et /
+    v = re.sub(r"[^\w\s&/]", "", v)
 
     return v
 
@@ -496,7 +482,7 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
 
     - détecte les variantes
 
-    - identifie exactement les fichiers où chaque variante apparaît
+    - identifie les fichiers où chaque variante apparaît
 
     """
 
@@ -504,11 +490,39 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
 
         return (
 
-            pd.DataFrame(columns=["Colonne", "Clé normalisée", "Variantes",
+            pd.DataFrame(
 
-                                  "Nb variantes", "Total occ."]),#, "Fichiers concernés"]),
+                columns=[
 
-            pd.DataFrame(columns=["Colonne", "Valeur unique propre"])
+                    "Colonne",
+
+                    "Clé normalisée",
+
+                    "Variantes",
+
+                    "Nb variantes",
+
+                    "Total occ.",
+
+                    "Fichiers concernés",
+
+                ]
+
+            ),
+
+            pd.DataFrame(
+
+                columns=[
+
+                    "Colonne",
+
+                    "Valeur unique propre",
+
+                    "Fichiers concernés",
+
+                ]
+
+            ),
 
         )
 
@@ -530,8 +544,6 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
 
     else:
 
-        # Pas possible d'identifier le fichier → analyse sans source
-
         series = df[[colonne]].fillna("")
 
         series["__source_file__"] = ""
@@ -539,8 +551,6 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
         use_source = False
 
     vals = []
-
-    # Gestion multi-valeurs
 
     for _, row in series.iterrows():
 
@@ -562,11 +572,39 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
 
         return (
 
-            pd.DataFrame(columns=["Colonne", "Clé normalisée", "Variantes",
+            pd.DataFrame(
 
-                                  "Nb variantes", "Total occ."]), #"Fichiers concernés"]),
+                columns=[
 
-            pd.DataFrame(columns=["Colonne", "Valeur unique propre"])
+                    "Colonne",
+
+                    "Clé normalisée",
+
+                    "Variantes",
+
+                    "Nb variantes",
+
+                    "Total occ.",
+
+                    "Fichiers concernés",
+
+                ]
+
+            ),
+
+            pd.DataFrame(
+
+                columns=[
+
+                    "Colonne",
+
+                    "Valeur unique propre",
+
+                    "Fichiers concernés",
+
+                ]
+
+            ),
 
         )
 
@@ -586,46 +624,50 @@ def incoherence_table(df: pd.DataFrame, colonne: str):
 
         total = len(g)
 
-        # Plusieurs variantes → incohérence
-
         if len(variantes) > 1:
 
-            incoherences.append({
+            incoherences.append(
 
-                "Colonne": colonne,
+                {
 
-                "Clé normalisée": key,
+                    "Colonne": colonne,
 
-                "Variantes": ", ".join(variantes),
+                    "Clé normalisée": key,
 
-                "Nb variantes": len(variantes),
+                    "Variantes": ", ".join(variantes),
 
-                "Total occ.": total,
+                    "Nb variantes": len(variantes),
 
-                #"Fichiers concernés": ", ".join(fichiers) if use_source else ""
+                    "Total occ.": total,
 
-            })
+                    "Fichiers concernés": ", ".join(fichiers) if use_source else "",
+
+                }
+
+            )
 
         else:
 
-            # Une seule variante → valeur propre
+            propres.append(
 
-            propres.append({
+                {
 
-                "Colonne": colonne,
+                    "Colonne": colonne,
 
-                "Valeur unique propre": variantes[0],
+                    "Valeur unique propre": variantes[0],
 
-               # "Fichiers concernés": ", ".join(fichiers) if use_source else ""
+                    "Fichiers concernés": ", ".join(fichiers) if use_source else "",
 
-            })
+                }
+
+            )
 
     incoh_df = pd.DataFrame(incoherences)
 
     propres_df = pd.DataFrame(propres)
 
     return incoh_df, propres_df
- 
+
 
 def to_excel_bytes(dfs: dict) -> bytes:
 
@@ -666,7 +708,7 @@ uploaded_files = st.file_uploader(
 
 if not uploaded_files:
 
-    st.info(" Importez au moins un fichier pour lancer l’analyse.")
+    st.info("👉 Importez au moins un fichier pour lancer l’analyse.")
 
     st.stop()
 
@@ -683,13 +725,12 @@ for f in uploaded_files:
 df = pd.concat(dfs_import, ignore_index=True)
 
 df["__source_file__"] = df["Source fichier"]
- 
 
-st.success(f" {len(uploaded_files)} fichier(s) importé(s) – {len(df):,} lignes fusionnées")
+st.success(f"✅ {len(uploaded_files)} fichier(s) importé(s) – {len(df):,} lignes fusionnées")
 
 # Options : colonnes analytiques à utiliser (heatmap + taux de remplissage analyse)
 
-with st.expander(" Options d’analyse", expanded=False):
+with st.expander("⚙️ Options d’analyse", expanded=False):
 
     cols_selection = st.multiselect(
 
@@ -705,7 +746,7 @@ with st.expander(" Options d’analyse", expanded=False):
 
 st.write("")
 
-st.write("###  Choisir le mode d’analyse")
+st.write("### ⚙️ Choisir le mode d’analyse")
 
 mode_unique = st.radio(
 
@@ -719,7 +760,7 @@ mode_unique = st.radio(
 
 )
 
-# --- Nettoyage et uniformisation de base ---
+# Nettoyage Pôle
 
 if "Pôle" in df.columns:
 
@@ -737,13 +778,11 @@ if "Pôle" in df.columns:
 
     )
 
-# --- Mode 'Par tâche unique' ---
+# Mode 'Par tâche unique'
 
 if mode_unique == "Par tâche unique (colonne Name)" and "Name" in df.columns:
 
     lignes_avant = len(df)
-
-    # Supprimer uniquement les lignes strictement identiques sur toutes les colonnes
 
     df = df.drop_duplicates(keep="first")
 
@@ -753,7 +792,7 @@ if mode_unique == "Par tâche unique (colonne Name)" and "Name" in df.columns:
 
     st.info(
 
-        f" {nb_doublons} doublon(s) strict(s) supprimé(s). "
+        f"🧾 {nb_doublons} doublon(s) strict(s) supprimé(s). "
 
         f"{lignes_apres:,} lignes uniques restantes."
 
@@ -793,6 +832,58 @@ else:
 
     st.write("**Analyse effectuée sur les lignes brutes des fichiers fusionnés.**")
 
+# -------------------- COMPLETENESS + KPI COHÉRENT --------------------
+
+taux_frames = []
+
+for c in cols_presentes:
+
+    taux_frames.append(completeness_table(df, c, by_pole=True))
+
+taux = (
+
+    pd.concat(taux_frames, ignore_index=True)
+
+    if taux_frames
+
+    else pd.DataFrame(columns=["Colonne", "Pôle", "Remplies", "Vides", "Taux (%)"])
+
+)
+
+pivot = None
+
+kpi_coherent = 0.0
+
+if not taux.empty and "Pôle" in taux.columns:
+
+    pivot = taux.pivot_table(
+
+        index="Colonne",
+
+        columns="Pôle",
+
+        values="Taux (%)",
+
+        aggfunc="mean",
+
+    )
+
+    valeurs_heatmap = pivot.values.flatten()
+
+    valeurs_heatmap = [v for v in valeurs_heatmap if not np.isnan(v)]
+
+    if valeurs_heatmap:
+
+        kpi_coherent = round(np.mean(valeurs_heatmap), 2)
+
+    else:
+
+        kpi_coherent = 0.0
+
+else:
+
+    kpi_coherent = 0.0
+
 # -------------------- KPIs --------------------
 
 nb_fichiers = len(uploaded_files)
@@ -801,15 +892,7 @@ nb_taches = len(df)
 
 nb_poles = df["Pôle"].nunique(dropna=True) if "Pôle" in df.columns else 0
 
-taux_globaux = []
-
-for c in cols_presentes:
-
-    s = df[c].astype(str)
-
-    taux_globaux.append((s.str.strip().ne("").sum() / len(df)) * 100)
-
-taux_moy = round(float(np.mean(taux_globaux)), 2) if taux_globaux else 0.0
+taux_moy = kpi_coherent  # KPI cohérent avec la heatmap
 
 st.markdown(
 
@@ -919,43 +1002,13 @@ st.write("")
 
 st.write("")
 
-# -------------------- COMPLETENESS --------------------
+# -------------------- COMPLETENESS (AFFICHAGE) --------------------
 
 st.subheader("Taux de remplissage (global & par pôle)")
 
-taux_frames = []
-
-for c in cols_presentes:
-
-    taux_frames.append(completeness_table(df, c, by_pole=True))
-
-taux = (
-
-    pd.concat(taux_frames, ignore_index=True)
-
-    if taux_frames
-
-    else pd.DataFrame(columns=["Colonne", "Pôle", "Remplies", "Vides", "Taux (%)"])
-
-)
-
 st.write("")
 
-# Heatmap par pôle
-
-if not taux.empty and "Pôle" in taux.columns:
-
-    pivot = taux.pivot_table(
-
-        index="Colonne",
-
-        columns="Pôle",
-
-        values="Taux (%)",
-
-        aggfunc="mean",
-
-    )
+if pivot is not None:
 
     fig2 = px.imshow(
 
@@ -998,8 +1051,6 @@ st.subheader("Top 5 des colonnes les moins remplies (global)")
 st.write("")
 
 try:
-
-    # On trie du plus FAIBLE taux au plus FORT
 
     taux_global = taux[taux["Pôle"] == "Global"].sort_values(
 
@@ -1069,7 +1120,7 @@ try:
 
         margin=dict(l=30, r=30, t=70, b=30),
 
-        yaxis=dict(autorange="reversed"),
+        # PAS de yaxis reversed : la barre tout en haut = colonne la moins remplie
 
         coloraxis_colorbar=dict(
 
@@ -1102,8 +1153,6 @@ st.write("")
 st.subheader("Valeurs distinctes & incohérences d’écriture")
 
 st.write("")
-
-# Calcul global une seule fois (puis utilisé dans les onglets + export)
 
 incoh_list = []
 
@@ -1145,7 +1194,7 @@ incoherences = (
 
             "Total occ.",
 
-            #"Fichiers concernés",
+            "Fichiers concernés",
 
         ]
 
@@ -1161,7 +1210,15 @@ propres_final = (
 
     else pd.DataFrame(
 
-        columns=["Colonne", "Valeur unique propre" ] #"Fichiers concernés"]
+        columns=[
+
+            "Colonne",
+
+            "Valeur unique propre",
+
+            "Fichiers concernés",
+
+        ]
 
     )
 
@@ -1213,7 +1270,7 @@ with tab2:
 
     if incoherences.empty:
 
-        st.info("Aucune incohérence détectée. ")
+        st.info("Aucune incohérence détectée. 👍")
 
     else:
 
@@ -1235,7 +1292,7 @@ with tab3:
 
     st.caption(
 
-        " Ce tableau liste toutes les écritures brutes (avant regroupement ou normalisation)."
+        "🧾 Ce tableau liste toutes les écritures brutes (avant regroupement ou normalisation)."
 
     )
 
@@ -1245,7 +1302,7 @@ st.write("")
 
 st.write("")
 
-st.subheader(" Exporter les résultats")
+st.subheader("📤 Exporter les résultats")
 
 synthese_poles = (
 
@@ -1301,7 +1358,7 @@ st.write("")
 
 st.download_button(
 
-    label=" Télécharger l’analyse complète (Excel)",
+    label="💾 Télécharger l’analyse complète (Excel)",
 
     data=excel_bytes,
 
@@ -1310,3 +1367,4 @@ st.download_button(
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 
 )
+
